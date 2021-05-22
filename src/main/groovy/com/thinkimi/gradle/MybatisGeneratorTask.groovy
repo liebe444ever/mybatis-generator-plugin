@@ -23,7 +23,7 @@ class MybatisGeneratorTask extends ConventionTask {
     @Internal
     def verbose
     @Internal
-    def targetDir
+    Map parameters
     @Internal
     FileCollection mybatisGeneratorClasspath
 
@@ -31,9 +31,12 @@ class MybatisGeneratorTask extends ConventionTask {
     void executeCargoAction() {
         services.get(IsolatedAntBuilder).withClasspath(getMybatisGeneratorClasspath()).execute {
             ant.taskdef(name: 'mbgenerator', classname: 'org.mybatis.generator.ant.GeneratorAntTask')
-
-            ant.properties['generated.source.dir'] = getTargetDir()
-            ant.mbgenerator(overwrite: getOverwrite(), configfile: getConfigFile(), verbose: getVerbose())
+            parameters.each { ant.property(name: it.key, value: it.value) }
+            ant.mbgenerator(overwrite: getOverwrite(), configfile: getConfigFile(), verbose: getVerbose()) {
+                propertyset {
+                    parameters.each { propertyref(name: it.key) }
+                }
+            }
         }
     }
 
